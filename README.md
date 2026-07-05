@@ -1,2 +1,211 @@
 # PC_03_FUNDAMENTOS_DE_ALGORITMOS
-PC 03 Fundamentos de algoritmos
+# PC 03 Fundamentos de algoritmos
+
+using System;
+
+namespace EvaluacionPC3
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            bool continuar = true;
+            while (continuar)
+            {
+                Console.Clear();
+                Console.WriteLine("====================================================");
+                Console.WriteLine("      SISTEMA DE EVALUACIÓN - CASO PC 03            ");
+                Console.WriteLine("====================================================");
+                Console.WriteLine("1. Ejercicio 1: Validar Comprobante Electrónico");
+                Console.WriteLine("2. Ejercicio 2: Calcular Horas Laborales SLA");
+                Console.WriteLine("3. Salir");
+                Console.WriteLine("====================================================");
+                Console.Write("Seleccione una opción: ");
+                
+                string opcion = Console.ReadLine();
+                switch (opcion)
+                {
+                    case "1":
+                        MenuValidarComprobante();
+                        break;
+                    case "2":
+                        MenuCalcularSLA();
+                        break;
+                    case "3":
+                        continuar = false;
+                        Console.WriteLine("\nPrograma finalizado con éxito.");
+                        break;
+                    default:
+                        Console.WriteLine("\n[ERROR] Opción no válida. Presione cualquier tecla para continuar...");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+        }
+
+        #region MENÚS INTERACTIVOS DE PRUEBA
+
+        static void MenuValidarComprobante()
+        {
+            Console.Clear();
+            Console.WriteLine("====================================================");
+            Console.WriteLine("     EJERCICIO 1: VALIDACIÓN DE COMPROBANTES        ");
+            Console.WriteLine("====================================================");
+            
+            // Pruebas automáticas exigidas por la guía del caso
+            Console.WriteLine(">>> Pruebas automáticas de escritorio:");
+            string prueba1 = "B123-00032123";
+            string prueba2 = "A121-32121";
+            Console.WriteLine($"Comprobante '{prueba1}' -> Resultado Esperado: True  | Obtenido: {ValidarComprobanteElectronico(prueba1)}");
+            Console.WriteLine($"Comprobante '{prueba2}' -> Resultado Esperado: False | Obtenido: {ValidarComprobanteElectronico(prueba2)}");
+            Console.WriteLine("----------------------------------------------------");
+
+            // Prueba libre para interacción del usuario
+            Console.Write("Ingrese un número de comprobante para evaluar de forma personalizada: ");
+            string entradaUsuario = Console.ReadLine();
+            
+            bool esValido = ValidarComprobanteElectronico(entradaUsuario);
+            
+            if (esValido)
+            {
+                Console.WriteLine("\n[ÉXITO] El comprobante tiene un formato correcto (VÁLIDO).");
+            }
+            else
+            {
+                Console.WriteLine("\n[FALLO] El comprobante NO cumple con las reglas de SUNAT/Negocio (INVÁLIDO).");
+            }
+
+            Console.WriteLine("\nPresione cualquier tecla para volver al menú principal...");
+            Console.ReadKey();
+        }
+
+        static void MenuCalcularSLA()
+        {
+            Console.Clear();
+            Console.WriteLine("====================================================");
+            Console.WriteLine("        EJERCICIO 2: CÁLCULO DE HORAS SLA           ");
+            Console.WriteLine("====================================================");
+
+            // Ejemplo de control profesional: Ticket creado un Viernes por la tarde y resuelto un Lunes por la mañana
+            DateTime fechaInicioPrueba = new DateTime(2026, 7, 3, 15, 0, 0);   // Viernes 15:00 hrs
+            DateTime fechaFinPrueba = new DateTime(2026, 7, 6, 11, 0, 0);      // Lunes 11:00 hrs
+
+            Console.WriteLine(">>> Caso de Estudio Automatizado:");
+            Console.WriteLine($"Fecha de Creación  : {fechaInicioPrueba:dd/MM/yyyy HH:mm}");
+            Console.WriteLine($"Fecha de Resolución: {fechaFinPrueba:dd/MM/yyyy HH:mm}");
+            
+            double resultadoSLA = CalcularHorasLaboralesSLA(fechaInicioPrueba, fechaFinPrueba);
+            Console.WriteLine($"Horas SLA calculadas (Excluyendo Sábados y Domingos): {resultadoSLA} horas");
+            Console.WriteLine("----------------------------------------------------");
+
+            // Entrada dinámica para el usuario
+            try
+            {
+                Console.WriteLine("Ingrese datos personalizados:");
+                Console.Write("Fecha Creación (Formatos aceptados: DD/MM/AAAA HH:MM): ");
+                DateTime creacionUsr = DateTime.Parse(Console.ReadLine());
+
+                Console.Write("Fecha Resolución (Formatos aceptados: DD/MM/AAAA HH:MM): ");
+                DateTime resolucionUsr = DateTime.Parse(Console.ReadLine());
+
+                double slaUsr = CalcularHorasLaboralesSLA(creacionUsr, resolucionUsr);
+                Console.WriteLine($"\nResultado: El tiempo neto acumulado de SLA es de {slaUsr} horas laborales.");
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("\n[ERROR] El formato de fecha u hora introducido es incorrecto.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\n[ERROR] Ocurrió un inconveniente: {ex.Message}");
+            }
+
+            Console.WriteLine("\nPresione cualquier tecla para volver al menú principal...");
+            Console.ReadKey();
+        }
+
+        #endregion
+
+        #region MÉTODOS DE RESOLUCIÓN PROFESIONAL (LÓGICA DEL EXAMEN)
+
+        /// <summary>
+        /// Ejercicio 1: Valida el formato exacto de un comprobante electrónico (YXXX-XXXXXXXX)
+        /// </summary>
+        public static bool ValidarComprobanteElectronico(string numero)
+        {
+            // 1. Manejo de casos inválidos iniciales: Cadenas vacías o con longitud incorrecta (1 + 3 + 1 + 8 = 13 caracteres)
+            if (string.IsNullOrEmpty(numero) || numero.Length != 13)
+            {
+                return false;
+            }
+
+            // 2. Regla 1: Validar el tipo de documento (Debe empezar estrictamente con 'B' o 'F')
+            char tipo = numero[0];
+            if (tipo != 'B' && tipo != 'F')
+            {
+                return false;
+            }
+
+            // 3. Regla 2: Validar los tres caracteres de la serie (Índices 1, 2 y 3 deben ser dígitos numéricos)
+            for (int i = 1; i <= 3; i++)
+            {
+                if (!char.IsDigit(numero[i]))
+                {
+                    return false;
+                }
+            }
+
+            // 4. Regla 3: Validar el carácter separador de campos (Índice 4 debe ser exclusivamente un guion)
+            if (numero[4] != '-')
+            {
+                return false;
+            }
+
+            // 5. Regla 4: Validar el correlativo a la derecha (Índices del 5 al 12 deben ser dígitos numéricos)
+            for (int i = 5; i <= 12; i++)
+            {
+                if (!char.IsDigit(numero[i]))
+                {
+                    return false;
+                }
+            }
+
+            // Si pasa todos los filtros de negocio de forma secuencial, el documento es válido
+            return true;
+        }
+
+        /// <summary>
+        /// Ejercicio 2: Calcula las horas transcurridas entre dos fechas utilizando la clase DateTime,
+        /// excluyendo del conteo de Service Level Agreement (SLA) los fines de semana.
+        /// </summary>
+        public static double CalcularHorasLaboralesSLA(DateTime fechaCreacion, DateTime fechaResolucion)
+        {
+            // Validación defensiva de negocio: La resolución no puede ocurrir antes de la creación
+            if (fechaResolucion < fechaCreacion)
+            {
+                Console.WriteLine("\n[ADVERTENCIA] La fecha de resolución es anterior a la fecha de creación.");
+                return 0;
+            }
+
+            double horasLaboralesContadas = 0;
+            DateTime punteroTiempo = fechaCreacion;
+
+            // Iteración controlada en bloques horarios continuos desde el inicio hasta el fin de la ventana
+            while (punteroTiempo < fechaResolucion)
+            {
+                // Validación del calendario utilizando las propiedades nativas de la clase DateTime (DayOfWeek)
+                if (punteroTiempo.DayOfWeek != DayOfWeek.Saturday && punteroTiempo.DayOfWeek != DayOfWeek.Sunday)
+                {
+                    horasLaboralesContadas++;
+                }
+
+                // Incremento dinámico de tiempo del cursor por cada hora transcurrida
+                punteroTiempo = punteroTiempo.AddHours(1);
+            }
+
+            return horasLaboralesContadas;
+        }
+
+        #endregion
+    }
+}
